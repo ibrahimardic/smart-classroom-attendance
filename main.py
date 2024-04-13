@@ -4,6 +4,13 @@ import numpy as np
 import cvzone
 import cv2
 import face_recognition
+import firebase_admin
+from firebase_admin import credentials, db
+
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL':'https://graduation-project-cbc74-default-rtdb.europe-west1.firebasedatabase.app/'
+})
 
 cap = cv2.VideoCapture(0)
 cap.set(3,640) #Width
@@ -23,12 +30,16 @@ for path in modePathList:
 print('Loading Encoded File Started...')
 file = open('EncodeFile.p', 'rb')
 print('Loading Encoded File Completed')
+
 encodeListKnownwithIds = pickle.load(file)
 file.close()
 encodeListKnown, studentIds = encodeListKnownwithIds
 
 #print(studentIds)
 
+modeType =0 # It shows us it's active
+counter =0
+id = -1
 
 while True:
     success, img =cap.read()
@@ -43,7 +54,7 @@ while True:
 
 
     imgBackground[190:190 + 480, 40:40 + 640] = img
-    imgBackground[0:0+720,640:640+640] = imgModeList[0]
+    imgBackground[0:0+720,640:640+640] = imgModeList[modeType]
 
     # We are zipping these together to use them in one loop
     for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
@@ -66,6 +77,46 @@ while True:
             #Showing the cam's location on background photo.
             bbox = 40+ x1, 190+ y1, x2-x1, y2-y1
             imgBackground = cvzone.cornerRect(imgBackground, bbox, rt=0)
+            id = studentIds[matchIndex]
+            if counter==0:
+                counter = 1
+                modeType = 1
+    if counter != 0:
+
+        #We'll download all the data from realtime database.
+        if counter ==1:
+            studentInfo = db.reference(f'Students/{id}').get()
+            print(studentInfo)
+
+            #Updating data of attendance
+            ref = db.reference(f'Students/{id}')
+            studentInfo['total attendance'] += 1
+            ref.child('total attendance').set(studentInfo['total attendance'])
+
+        #Marked mode.
+        if 60<counter<=110:
+            modeType=2
+
+        imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+
+        #Student informations
+        if counter <=60:
+            #Writing this data to application background manually. Not so accurate, need to upgraded.
+            cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
+                        cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
+            cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
+                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
+            cv2.putText(imgBackground, str(studentInfo['starting Year']), (972, 418),
+                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+            cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
+                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+            cv2.putText(imgBackground, str(studentInfo['total attendance']), (917, 595),
+                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+
+        counter +=1
+
+
+
 
     cv2.imshow("Face Attendance", imgBackground)
     cv2.waitKey(1)
