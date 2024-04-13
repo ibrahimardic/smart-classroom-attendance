@@ -62,7 +62,7 @@ while True:
 
             y1, x2, y2, x1 = faceLoc
             #We need to multiply the locations by 4 because we scaled it 0.25.
-            y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+            y1, x2, y2, x1 = y1 *4, x2*4, y2*4, x1*4
 
             #Showing the cam's location on background photo.
             bbox = 40+ x1, 190+ y1, x2-x1, y2-y1
