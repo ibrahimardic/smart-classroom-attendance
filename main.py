@@ -126,7 +126,7 @@ while True:
                                 cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
                     cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
-                    cv2.putText(imgBackground, str(studentInfo['starting Year']), (972, 418),
+                    cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
                     cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)

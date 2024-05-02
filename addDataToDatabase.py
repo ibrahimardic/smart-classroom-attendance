@@ -13,7 +13,7 @@ data = {
         {
             "name":"Elon Musk",
             "major":"CEO",
-            "starting Year":2015,
+            "Student Number":180254000,
             "total attendance":6,
             "last_attendance_time": "2024-04-13 15:33:25"
 
@@ -22,7 +22,7 @@ data = {
         {
             "name":"Ibrahim Ardic",
             "major":"Computer Engineering",
-            "starting Year":2018,
+            "Student Number":180254050,
             "total attendance":8,
             "last_attendance_time": "2024-04-13 15:36:18"
 
