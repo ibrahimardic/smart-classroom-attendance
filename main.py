@@ -1,12 +1,19 @@
+import datetime
 import os
 import pickle
-import numpy as np
-import cvzone
+
+from win32com.client import Dispatch
+
 import cv2
+import cvzone
 import face_recognition
 import firebase_admin
+import numpy as np
 from firebase_admin import credentials, db
-import datetime
+
+def speak(str1):
+    speak = Dispatch(("SAPI.SpVoice"))
+    speak.Speak(str1)
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
@@ -42,7 +49,12 @@ modeType =0 # It shows us it's active
 counter =0
 id = -1
 
+SpeakAttTaken =True
+SpeakStudInfo = True
+
+
 while True:
+
     success, img =cap.read()
 
     #Scaling images due to computation power
@@ -72,7 +84,6 @@ while True:
             #print("Match Index: ", matchIndex)
 
             if matches[matchIndex]:
-
                 y1, x2, y2, x1 = faceLoc
                 #We need to multiply the locations by 4 because we scaled it 0.25.
                 y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
@@ -106,18 +117,25 @@ while True:
                     ref.child('last_attendance_time').set(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 #If already marked
                 else:
+
                     modeType = 3
                     counter=0
                     imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+                    if SpeakAttTaken:
+                        speak("Your attendance is already taken.")
+                        SpeakAttTaken = False
+
 
             if modeType !=3:
-
 
                 #Marked mode.
                 if 100<counter<=180:
                     modeType=2
 
                 imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+                if SpeakStudInfo:
+                    speak(f"Attendance is taken for {studentInfo['name']}")
+                    SpeakStudInfo = False
 
                 #Student informations
                 if counter <=100:
