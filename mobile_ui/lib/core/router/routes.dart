@@ -3,4 +3,5 @@ class Routes {
   static const homeView = "/home_view";
   static const chooseClassView = "/choose_class_view";
   static const studentHomeView = "/student_home_view";
+  static const splashView = "/splash_view";
 }

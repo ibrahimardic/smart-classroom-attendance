@@ -1,5 +1,5 @@
 class ChooseClassArguments {
-  int id;
+  String id;
   ChooseClassArguments({
     required this.id,
   });

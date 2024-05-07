@@ -1,14 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:graduation_project/core/constants/app_strings.dart';
 import 'package:graduation_project/core/di/locator.dart';
 import 'package:graduation_project/core/router/route_manager.dart';
+import 'package:graduation_project/core/shared_prefences/shared_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Firebase.initializeApp();
   await setupLocator();
-
+  await PreferenceUtils.init();
   runApp(const MyApp());
 }
 

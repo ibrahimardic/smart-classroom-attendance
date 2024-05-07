@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "104240505555",
+    "firebase_url": "https://graduation-project-cbc74-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "graduation-project-cbc74",
+    "storage_bucket": "graduation-project-cbc74.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:104240505555:android:e56a52d60b4a69cd53ea26",
+        "android_client_info": {
+          "package_name": "com.example.graduation_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRqz4AnuVuOsZvN0iXLWRBp5qdzNT3Vpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
