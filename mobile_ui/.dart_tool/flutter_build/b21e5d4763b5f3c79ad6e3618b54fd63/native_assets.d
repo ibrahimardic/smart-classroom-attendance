@@ -1,0 +1,1 @@
+ /Users/batuhanyildizhan/appitech/smart-classroom-attendance/mobile_ui/.dart_tool/flutter_build/b21e5d4763b5f3c79ad6e3618b54fd63/native_assets.yaml: 
