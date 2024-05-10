@@ -1,8 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:graduation_project/core/router/route_manager.dart';
-import 'package:graduation_project/core/router/routes.dart';
-import 'package:graduation_project/core/shared_prefences/shared_service.dart';
-import 'package:graduation_project/core/shared_prefences/shared_strings.dart';
 import 'package:graduation_project/service/auth/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
@@ -22,9 +18,6 @@ class AuthViewModel extends ChangeNotifier {
   signIn() async {
     try {
       await _authService.signIn(_email, _password);
-      // if (PreferenceUtils.getString(SharedStrings.userId) != null) {
-      //   router.goNamed(Routes.homeView);
-      // }
     } catch (e) {
       print(e);
     }

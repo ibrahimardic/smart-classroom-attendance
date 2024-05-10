@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:graduation_project/core/di/locator.dart';
 import 'package:graduation_project/core/router/route_manager.dart';
 import 'package:graduation_project/core/router/routes.dart';
 import 'package:graduation_project/core/shared_prefences/shared_service.dart';
 import 'package:graduation_project/core/shared_prefences/shared_strings.dart';
+import 'package:graduation_project/view_model/home_view_model.dart';
 
 class SplashViewModel extends ChangeNotifier {
   SplashViewModel() {
     print("SplashViewModel");
 
-    checkOnboardingNeedsToShow();
+    checkHomeCondition();
   }
-  checkOnboardingNeedsToShow() async {
+  checkHomeCondition() async {
     await Future.delayed(const Duration(seconds: 1));
 
     String? userId = PreferenceUtils.getString(SharedStrings.userId);
@@ -21,7 +23,11 @@ class SplashViewModel extends ChangeNotifier {
 
     if (userId != null) {
       if (role == 0) {
-        router.goNamed(Routes.homeView);
+        if (getIt<HomeViewModel>().user!.activeClass == null) {
+          router.goNamed(Routes.lecturerHasNotClassView);
+        } else {
+          router.goNamed(Routes.lecturerHasClassView);
+        }
       } else {
         router.goNamed(Routes.studentHomeView);
       }

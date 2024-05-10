@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:graduation_project/core/constants/app_colors.dart';
 import 'package:graduation_project/core/constants/app_font_weights.dart';
 import 'package:graduation_project/core/constants/app_strings.dart';
+import 'package:graduation_project/core/router/route_manager.dart';
 import 'package:graduation_project/core/shared_prefences/shared_service.dart';
 import 'package:graduation_project/core/shared_prefences/shared_strings.dart';
 import 'package:graduation_project/view_model/auth/auth_view_model.dart';
@@ -93,8 +94,9 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       24.h.verticalSpace,
                       PrimaryButton(
-                        onTap: () {
-                          viewModel.signIn();
+                        onTap: () async {
+                          await viewModel.signIn();
+                          router.goNamed("/");
                           // if (emailController.text.trim() == "1") {
                           //   router.goNamed(Routes.homeView);
                           // } else if (emailController.text.trim() == "2") {

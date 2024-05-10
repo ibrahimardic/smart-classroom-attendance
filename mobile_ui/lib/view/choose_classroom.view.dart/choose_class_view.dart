@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:graduation_project/core/constants/app_colors.dart';
 import 'package:graduation_project/core/constants/app_font_weights.dart';
 import 'package:graduation_project/core/constants/app_strings.dart';
-import 'package:graduation_project/core/di/locator.dart';
 import 'package:graduation_project/core/router/arguments/choose_class_arguments.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:graduation_project/core/router/route_manager.dart';
-import 'package:graduation_project/core/router/routes.dart';
-import 'package:graduation_project/view_model/choose_class_view_model.dart';
 import 'package:graduation_project/view_model/home_view_model.dart';
 import 'package:graduation_project/widgets/text_style_generator.dart';
 import 'package:provider/provider.dart';
+import 'package:graduation_project/core/di/locator.dart';
 
 class ChooseClassView extends StatelessWidget {
   final ChooseClassArguments arguments;
@@ -25,7 +23,7 @@ class ChooseClassView extends StatelessWidget {
       body: Padding(
         padding:
             EdgeInsets.only(left: 20.w, right: 20.w, top: 60.h, bottom: 15.h),
-        child: Consumer<ChooseClassViewModel>(
+        child: Consumer<HomeViewModel>(
           builder: (context, viewModel, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -55,17 +53,37 @@ class ChooseClassView extends StatelessWidget {
               Expanded(
                 child: ListView.separated(
                     padding: EdgeInsets.zero,
-                    itemCount: viewModel.lecturesList.length + 1,
+                    itemCount: viewModel.user!.courses.length + 1,
                     separatorBuilder: (context, index) => 15.h.verticalSpace,
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Container();
                       } else {
                         return GestureDetector(
-                          onTap: () {
-                            getIt<HomeViewModel>().setActiveClass(
-                                viewModel.lecturesList[index - 1].name);
-                            router.goNamed(Routes.homeView);
+                          onTap: () async {
+                            bool response = await viewModel.setClassActive(
+                                arguments.id,
+                                viewModel.user!.courses[index - 1]);
+                            if (response) {
+                              getIt<HomeViewModel>().getUserData();
+                              getIt<HomeViewModel>().getClasses();
+                              router.goNamed("/");
+                            } else {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 24.w, vertical: 16.h),
+                                  width: 1.sw,
+                                  height: 100.h,
+                                  child: TextStyleGenerator(
+                                    text: "Some error occured",
+                                    fontSize: 16.sp,
+                                    fontWeight: AppFontWeights.medium,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -77,7 +95,7 @@ class ChooseClassView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(15.sp),
                             ),
                             child: TextStyleGenerator(
-                              text: viewModel.lecturesList[index - 1].name,
+                              text: viewModel.user!.courses[index - 1],
                               color: AppColors.generalWhite,
                               fontSize: 14.sp,
                               fontWeight: AppFontWeights.medium,

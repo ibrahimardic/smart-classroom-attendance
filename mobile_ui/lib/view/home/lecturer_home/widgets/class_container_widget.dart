@@ -41,7 +41,7 @@ class ClassContainerWidget extends StatelessWidget {
                       color: AppColors.generalWhite,
                     )
                   : Container(),
-              lectureName != null
+              lecturerName != null
                   ? TextStyleGenerator(
                       text: lecturerName,
                       fontWeight: AppFontWeights.medium,
