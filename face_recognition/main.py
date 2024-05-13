@@ -1,24 +1,22 @@
 import datetime
 import os
 import pickle
-
 from win32com.client import Dispatch
-
+import fsdatabase
 import cv2
 import cvzone
 import face_recognition
 import firebase_admin
 import numpy as np
-from firebase_admin import credentials, db
+from firebase_admin import credentials, db, firestore
+
+
+
+result = fsdatabase.activeClasses('muh-205')
 
 def speak(str1):
     speak = Dispatch(("SAPI.SpVoice"))
     speak.Speak(str1)
-
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL':'https://graduation-project-cbc74-default-rtdb.europe-west1.firebasedatabase.app/'
-})
 
 cap = cv2.VideoCapture(0)
 cap.set(3,640) #Width
@@ -53,7 +51,7 @@ SpeakAttTaken =True
 SpeakStudInfo = True
 
 
-while True:
+while result:
 
     success, img =cap.read()
 
