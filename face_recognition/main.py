@@ -11,7 +11,7 @@ import numpy as np
 from firebase_admin import credentials, db, firestore
 
 
-
+#System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
 
 def speak(str1):
@@ -89,17 +89,25 @@ while result:
                 bbox = 40+ x1, 190+ y1, x2-x1, y2-y1
                 imgBackground = cvzone.cornerRect(imgBackground, bbox, rt=0)
                 id = studentIds[matchIndex]
+                studentInfo = db.reference(f'Students/{id}').get()
                 if counter==0:
                     cvzone.putTextRect(imgBackground, "Loading",(275,400))
                     cv2.imshow("Face Attendance", imgBackground)
                     cv2.waitKey(1)
                     counter = 1
                     modeType = 1
-        if counter != 0:
+
+
+        if counter != 0 :
+
+            if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                speak('You are not enrolled in this course.')
+
+                continue
 
             #We'll download all the data from realtime database.
-            if counter ==1:
-                studentInfo = db.reference(f'Students/{id}').get()
+            if counter ==1 :
+
                 #print(studentInfo)
 
                 #Check if already marked
@@ -119,44 +127,47 @@ while result:
                     modeType = 3
                     counter=0
                     imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+
                     if SpeakAttTaken:
                         speak("Your attendance is already taken.")
                         SpeakAttTaken = False
 
 
-            if modeType !=3:
+            if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                if modeType !=3:
+                    #Marked mode.
+                    if 100<counter<=180:
+                        modeType=2
 
-                #Marked mode.
-                if 100<counter<=180:
-                    modeType=2
-
-                imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-                if SpeakStudInfo:
-                    speak(f"Attendance is taken for {studentInfo['name']}")
-                    SpeakStudInfo = False
-
-                #Student informations
-                if counter <=100:
-                    #Writing this data to application background manually. Not so accurate, need to upgraded.
-                    cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
-                                cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
-                    cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
-                    cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
-                    cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
-                    cv2.putText(imgBackground, str(studentInfo['total attendance']), (917, 595),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
-
-                counter +=1
-
-                #Resetting.
-                if counter >180:
-                    counter=0
-                    modeType=0
-                    studentInfo=[]
                     imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+                    if SpeakStudInfo:
+                        speak(f"Attendance is taken for {studentInfo['name']}")
+                        SpeakStudInfo = False
+
+                    #Student informations
+                    if counter <=100:
+                        #Writing this data to application background manually. Not so accurate, need to upgraded.
+                        cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
+                                    cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
+                        cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
+                        cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+                        cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+                        cv2.putText(imgBackground, str(studentInfo['total attendance']), (917, 595),
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+
+                    counter +=1
+
+                    #Resetting.
+                    if counter >180:
+                        counter=0
+                        modeType=0
+                        studentInfo=[]
+                        imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+
+
 
     #If no face detected.
     else:

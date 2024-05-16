@@ -9,6 +9,7 @@ firestoredb = firestore.client()
 
 # Define the query
 query = firestoredb.collection('classrooms')
+
 # classes = query.where('isActive', '==', True).stream()
 
 # Print the class details
@@ -19,6 +20,19 @@ def activeClasses(class_name):
         return True
     else:
         return False
+
+def attendedStudents(course_id, student_num):
+
+    course_ref = firestoredb.collection('courses').document(course_id)
+    course_dict = course_ref.get().to_dict()
+
+    if course_dict:
+        enrolled_students = course_dict.get('enrolledStudents', [])
+        if student_num in [student['number'] for student in enrolled_students]:
+            return True
+    return False
+
+print(attendedStudents('blg-403.1', '180254050'))
 
 # print(activeClasses('muh-302'))
 # print(activeClasses('muh-205'))
