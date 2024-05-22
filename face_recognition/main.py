@@ -10,15 +10,12 @@ import firebase_admin
 import numpy as np
 from firebase_admin import credentials, db, firestore
 
-
-
 #System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
 
 def speak(str1):
     speak = Dispatch(("SAPI.SpVoice"))
     speak.Speak(str1)
-
 
 folderModePath = 'Resources/Modes'
 modePathList = os.listdir(folderModePath)
@@ -46,7 +43,6 @@ while True:
     result = fsdatabase.activeClasses('muh-205')
     print(counter)
 
-
     if result:
         if cap == None:
             cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -58,14 +54,12 @@ while True:
 
         success, img =cap.read()
 
-    #Scaling images due to computation power
+        #Scaling images due to computation power
         imgSmall = cv2.resize(img, (0, 0), None, 0.25, 0.25)
         imgSmall = cv2.cvtColor(imgSmall, cv2.COLOR_BGR2RGB)
 
-
         faceCurFrame = face_recognition.face_locations(imgSmall)
-        encodeCurFrame = face_recognition.face_encodings(imgSmall,faceCurFrame)
-
+        encodeCurFrame = face_recognition.face_encodings(imgSmall, faceCurFrame)
 
         imgBackground[190:190 + 480, 40:40 + 640] = img
         imgBackground[0:0+720,640:640+640] = imgModeList[modeType]
@@ -93,24 +87,23 @@ while True:
                     imgBackground = cvzone.cornerRect(imgBackground, bbox, rt=0)
                     id = studentIds[matchIndex]
                     studentInfo = db.reference(f'Students/{id}').get()
+
                     if counter==0:
                         cv2.imshow("Face Attendance", imgBackground)
                         cv2.waitKey(1)
                         counter = 1
                         modeType = 1
 
-
             if counter != 0 :
-
                 if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
                     speak('You are not enrolled in this course.')
+                    modeType = 0  # Reset modeType to default
+                    counter = 0  # Reset counter
                     continue
 
                 #We'll download all the data from realtime database.
                 if counter ==1 :
-
                     #print(studentInfo)
-
                     #Check if already marked
                     datetimeobject = datetime.datetime.strptime(studentInfo['last_attendance_time'],
                                                       "%Y-%m-%d %H:%M:%S")
@@ -127,22 +120,20 @@ while True:
                         modeType = 3
                         counter=0
                         imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-
                         speak("Your attendance is already taken.")
-
 
                 if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
                     if modeType !=3:
                         #Marked mode.
-                        if 100<counter<=180:
+                        if 20<counter<=30:
                             modeType=2
 
                         imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-                        speak(f"Attendance is taken for {studentInfo['name']}")
-
+                        if counter == 1:
+                            speak(f"Attendance is taken for {studentInfo['name']}")
 
                         #Student informations
-                        if counter <=100:
+                        if counter <=20:
                             #Writing this data to application background manually. Not so accurate, need to upgraded.
                             cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
                                         cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
@@ -158,19 +149,16 @@ while True:
                         counter +=1
 
                         #Resetting.
-                        if counter >180:
+                        if counter >30:
                             counter=0
                             modeType=0
                             studentInfo=[]
                             imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
 
-        if not result:
-            cap.release()
-
-        #If no face detected.
         else:
             modeType=0
             counter=0
+
         cv2.imshow("Face Attendance", imgBackground)
         cv2.waitKey(1)
 
@@ -179,4 +167,3 @@ while True:
         if cap != None:
             cap.release()
             cap = None
-
