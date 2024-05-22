@@ -11,19 +11,13 @@ import numpy as np
 from firebase_admin import credentials, db, firestore
 
 
+
 #System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
 
 def speak(str1):
     speak = Dispatch(("SAPI.SpVoice"))
     speak.Speak(str1)
-
-cap = cv2.VideoCapture(0)
-cap.set(3,640) #Width
-cap.set(4,480) #Height
-
-imgBackground = cv2.imread('Resources/background_m.jpg')
-imgBackground = cv2.resize(imgBackground  ,(1280,720))
 
 
 folderModePath = 'Resources/Modes'
@@ -47,132 +41,142 @@ modeType =0 # It shows us it's active
 counter =0
 id = -1
 
-SpeakAttTaken =True
-SpeakStudInfo = True
+cap = None
+while True:
+    result = fsdatabase.activeClasses('muh-205')
+    print(counter)
 
 
-while result:
+    if result:
+        if cap == None:
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            cap.set(3, 640)  # Width
+            cap.set(4, 480)  # Height
 
-    success, img =cap.read()
+        imgBackground = cv2.imread('Resources/background_m.jpg')
+        imgBackground = cv2.resize(imgBackground, (1280, 720))
+
+        success, img =cap.read()
 
     #Scaling images due to computation power
-    imgSmall = cv2.resize(img, (0,0), None,0.25,0.25 )
-    imgSmall = cv2.cvtColor(imgSmall, cv2.COLOR_BGR2RGB)
+        imgSmall = cv2.resize(img, (0, 0), None, 0.25, 0.25)
+        imgSmall = cv2.cvtColor(imgSmall, cv2.COLOR_BGR2RGB)
 
 
-    faceCurFrame = face_recognition.face_locations(imgSmall)
-    encodeCurFrame = face_recognition.face_encodings(imgSmall,faceCurFrame)
+        faceCurFrame = face_recognition.face_locations(imgSmall)
+        encodeCurFrame = face_recognition.face_encodings(imgSmall,faceCurFrame)
 
 
-    imgBackground[190:190 + 480, 40:40 + 640] = img
-    imgBackground[0:0+720,640:640+640] = imgModeList[modeType]
+        imgBackground[190:190 + 480, 40:40 + 640] = img
+        imgBackground[0:0+720,640:640+640] = imgModeList[modeType]
 
-    if faceCurFrame:
-        # We are zipping these together to use them in one loop
-        for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
-            #Matches return boolean val.
-            matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
-            #It returns float value, comparing with all faces. Lower value, closer match.
-            faceDistance = face_recognition.face_distance(encodeListKnown, encodeFace)
-            #print("matches", matches)
-            #print("distance", faceDistance)
+        if faceCurFrame:
+            # We are zipping these together to use them in one loop
+            for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
+                #Matches return boolean val.
+                matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
+                #It returns float value, comparing with all faces. Lower value, closer match.
+                faceDistance = face_recognition.face_distance(encodeListKnown, encodeFace)
+                #print("matches", matches)
+                #print("distance", faceDistance)
 
-            #Taking the closest face distance.
-            matchIndex = np.argmin(faceDistance)
-            #print("Match Index: ", matchIndex)
+                #Taking the closest face distance.
+                matchIndex = np.argmin(faceDistance)
+                #print("Match Index: ", matchIndex)
 
-            if matches[matchIndex]:
-                y1, x2, y2, x1 = faceLoc
-                #We need to multiply the locations by 4 because we scaled it 0.25.
-                y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
-                #Showing the cam's location on background photo.
-                bbox = 40+ x1, 190+ y1, x2-x1, y2-y1
-                imgBackground = cvzone.cornerRect(imgBackground, bbox, rt=0)
-                id = studentIds[matchIndex]
-                studentInfo = db.reference(f'Students/{id}').get()
-                if counter==0:
-                    cvzone.putTextRect(imgBackground, "Loading",(275,400))
-                    cv2.imshow("Face Attendance", imgBackground)
-                    cv2.waitKey(1)
-                    counter = 1
-                    modeType = 1
-
-
-        if counter != 0 :
-
-            if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
-                speak('You are not enrolled in this course.')
-
-                continue
-
-            #We'll download all the data from realtime database.
-            if counter ==1 :
-
-                #print(studentInfo)
-
-                #Check if already marked
-                datetimeobject = datetime.datetime.strptime(studentInfo['last_attendance_time'],
-                                                  "%Y-%m-%d %H:%M:%S")
-                secondsElapsed = (datetime.datetime.now()-datetimeobject).total_seconds()
-                #print(secondsElapsed)
-                if secondsElapsed>3600:
-                    #Updating data of attendance
-                    ref = db.reference(f'Students/{id}')
-                    studentInfo['total attendance'] += 1
-                    ref.child('total attendance').set(studentInfo['total attendance'])
-                    ref.child('last_attendance_time').set(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                #If already marked
-                else:
-
-                    modeType = 3
-                    counter=0
-                    imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-
-                    if SpeakAttTaken:
-                        speak("Your attendance is already taken.")
-                        SpeakAttTaken = False
+                if matches[matchIndex]:
+                    y1, x2, y2, x1 = faceLoc
+                    #We need to multiply the locations by 4 because we scaled it 0.25.
+                    y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+                    #Showing the cam's location on background photo.
+                    bbox = 40+ x1, 190+ y1, x2-x1, y2-y1
+                    imgBackground = cvzone.cornerRect(imgBackground, bbox, rt=0)
+                    id = studentIds[matchIndex]
+                    studentInfo = db.reference(f'Students/{id}').get()
+                    if counter==0:
+                        cv2.imshow("Face Attendance", imgBackground)
+                        cv2.waitKey(1)
+                        counter = 1
+                        modeType = 1
 
 
-            if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
-                if modeType !=3:
-                    #Marked mode.
-                    if 100<counter<=180:
-                        modeType=2
+            if counter != 0 :
 
-                    imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-                    if SpeakStudInfo:
-                        speak(f"Attendance is taken for {studentInfo['name']}")
-                        SpeakStudInfo = False
+                if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                    speak('You are not enrolled in this course.')
+                    continue
 
-                    #Student informations
-                    if counter <=100:
-                        #Writing this data to application background manually. Not so accurate, need to upgraded.
-                        cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
-                                    cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
-                        cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
-                        cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
-                        cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
-                        cv2.putText(imgBackground, str(studentInfo['total attendance']), (917, 595),
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+                #We'll download all the data from realtime database.
+                if counter ==1 :
 
-                    counter +=1
+                    #print(studentInfo)
 
-                    #Resetting.
-                    if counter >180:
+                    #Check if already marked
+                    datetimeobject = datetime.datetime.strptime(studentInfo['last_attendance_time'],
+                                                      "%Y-%m-%d %H:%M:%S")
+                    secondsElapsed = (datetime.datetime.now()-datetimeobject).total_seconds()
+                    #print(secondsElapsed)
+                    if secondsElapsed>3600:
+                        #Updating data of attendance
+                        ref = db.reference(f'Students/{id}')
+                        studentInfo['total attendance'] += 1
+                        ref.child('total attendance').set(studentInfo['total attendance'])
+                        ref.child('last_attendance_time').set(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    #If already marked
+                    else:
+                        modeType = 3
                         counter=0
-                        modeType=0
-                        studentInfo=[]
                         imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
 
+                        speak("Your attendance is already taken.")
 
 
-    #If no face detected.
+                if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                    if modeType !=3:
+                        #Marked mode.
+                        if 100<counter<=180:
+                            modeType=2
+
+                        imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+                        speak(f"Attendance is taken for {studentInfo['name']}")
+
+
+                        #Student informations
+                        if counter <=100:
+                            #Writing this data to application background manually. Not so accurate, need to upgraded.
+                            cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
+                                        cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
+                            cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
+                                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
+                            cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
+                                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+                            cv2.putText(imgBackground, str(studentInfo['last_attendance_time']), (907, 507),
+                                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+                            cv2.putText(imgBackground, str(studentInfo['total attendance']), (917, 595),
+                                        cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)
+
+                        counter +=1
+
+                        #Resetting.
+                        if counter >180:
+                            counter=0
+                            modeType=0
+                            studentInfo=[]
+                            imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+
+        if not result:
+            cap.release()
+
+        #If no face detected.
+        else:
+            modeType=0
+            counter=0
+        cv2.imshow("Face Attendance", imgBackground)
+        cv2.waitKey(1)
+
     else:
-        modeType=0
-        counter=0
-    cv2.imshow("Face Attendance", imgBackground)
-    cv2.waitKey(1)
+        cv2.destroyAllWindows()
+        if cap != None:
+            cap.release()
+            cap = None
 
