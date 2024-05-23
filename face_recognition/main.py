@@ -9,13 +9,18 @@ import face_recognition
 import firebase_admin
 import numpy as np
 from firebase_admin import credentials, db, firestore
+import threading
+#import multiprocessing
 
 #System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
 
 def speak(str1):
-    speak = Dispatch(("SAPI.SpVoice"))
-    speak.Speak(str1)
+    def speak_thread():
+        speak = Dispatch(("SAPI.SpVoice"))
+        speak.Speak(str1)
+    thread = threading.Thread(target=speak_thread())
+    thread.start()
 
 folderModePath = 'Resources/Modes'
 modePathList = os.listdir(folderModePath)
@@ -37,6 +42,7 @@ encodeListKnown, studentIds = encodeListKnownwithIds
 modeType =0 # It shows us it's active
 counter =0
 id = -1
+speak_called = False
 
 cap = None
 while True:
@@ -96,7 +102,9 @@ while True:
 
             if counter != 0 :
                 if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
-                    speak('You are not enrolled in this course.')
+                    if not speak_called:
+                        speak('You are not enrolled in this course.')
+                        speak_called = True
                     modeType = 0  # Reset modeType to default
                     counter = 0  # Reset counter
                     continue
@@ -120,20 +128,23 @@ while True:
                         modeType = 3
                         counter=0
                         imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-                        speak("Your attendance is already taken.")
+                        if not speak_called:
+                            speak("Your attendance is already taken.")
+                            speak_called = True
 
                 if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
                     if modeType !=3:
                         #Marked mode.
-                        if 20<counter<=30:
+                        if 13<counter<=18:
                             modeType=2
 
                         imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
-                        if counter == 1:
+                        if counter == 1 and not speak_called:
                             speak(f"Attendance is taken for {studentInfo['name']}")
+                            speak_called = True
 
                         #Student informations
-                        if counter <=20:
+                        if counter <=12:
                             #Writing this data to application background manually. Not so accurate, need to upgraded.
                             cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
                                         cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
@@ -149,15 +160,17 @@ while True:
                         counter +=1
 
                         #Resetting.
-                        if counter >30:
+                        if counter >18:
                             counter=0
                             modeType=0
                             studentInfo=[]
                             imgBackground[0:0 + 720, 640:640 + 640] = imgModeList[modeType]
+                            speak_called = False
 
         else:
             modeType=0
             counter=0
+            speak_called = False
 
         cv2.imshow("Face Attendance", imgBackground)
         cv2.waitKey(1)
