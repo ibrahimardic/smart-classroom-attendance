@@ -160,6 +160,12 @@ while True:
                             speak_called = True
 
                 if check_attendance_status('blg-403.1',student_number):
+
+                    name = str(studentInfo['name'])
+                    short_name = (name[:15] + '.') if len(name) > 15 else name
+                    major = str(studentInfo['major'])
+                    short_major = (major[:21] +'.') if len(major)> 21 else major
+
                     if modeType !=3:
                         #Marked mode.
                         if 13<counter<=18:
@@ -173,9 +179,9 @@ while True:
                         #Student informations
                         if counter <=12:
                             #Writing this data to application background manually. Not so accurate, need to upgraded.
-                            cv2.putText(imgBackground ,str(studentInfo['name']), (868,236),
+                            cv2.putText(imgBackground ,short_name, (868,236),
                                         cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),1)
-                            cv2.putText(imgBackground, str(studentInfo['major']), (868, 322),
+                            cv2.putText(imgBackground, short_major, (868, 322),
                                         cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0),1)
                             cv2.putText(imgBackground, str(studentInfo['Student Number']), (950, 420),
                                         cv2.FONT_HERSHEY_COMPLEX, 0.65, (0, 0, 0), 1)

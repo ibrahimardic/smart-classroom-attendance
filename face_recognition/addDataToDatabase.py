@@ -37,7 +37,7 @@ data = {
 },
     "180254037":
         {
-            "name": "Batuhan Yild.",
+            "name": "Batuhan Yildizhan",
             "major": "Computer Engineering",
             "Student Number": 180254037,
             "total attendance": 8,
