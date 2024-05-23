@@ -19,22 +19,28 @@ def speak(str1):
     def speak_thread():
         speak = Dispatch(("SAPI.SpVoice"))
         speak.Speak(str1)
-    thread = threading.Thread(target=speak_thread())
+
+    thread = threading.Thread(target=speak_thread)
     thread.start()
+
+def process_frame(img):
+    imgSmall = cv2.resize(img, ( 0, 0 ), None, 0.25, 0.25)
+    imgSmall = cv2.cvtColor(imgSmall, cv2.COLOR_BGR2RGB)
+    faceCurFrame = face_recognition.face_locations(imgSmall)
+    encodeCurFrame = face_recognition.face_encodings(imgSmall, faceCurFrame)
+    return faceCurFrame, encodeCurFrame
 
 folderModePath = 'Resources/Modes'
 modePathList = os.listdir(folderModePath)
-imgModeList = []
-for path in modePathList:
-    imgModeList.append(cv2.imread(os.path.join(folderModePath,path)))
+imgModeList = [cv2.imread(os.path.join(folderModePath, path)) for path in modePathList]
+
 
 # Load the Encoding file.
 print('Loading Encoded File Started...')
-file = open('EncodeFile.p', 'rb')
+with open('EncodeFile.p','rb') as file:
+    encodeListKnownwithIds = pickle.load(file)
 print('Loading Encoded File Completed')
 
-encodeListKnownwithIds = pickle.load(file)
-file.close()
 encodeListKnown, studentIds = encodeListKnownwithIds
 
 #print(studentIds)
@@ -45,6 +51,30 @@ id = -1
 speak_called = False
 
 cap = None
+frame_interval = 3 # Process to reduce load
+frame_count = 0
+
+student_info_cache = {}
+attendance_status_cache = {}
+
+
+#Getting student info from cache, not from database to improve system's efficiency.
+def get_student_info(student_id):
+    if student_id in student_info_cache:
+        return student_info_cache[student_id]
+    student_info = db.reference(f'Students/{student_id}').get()
+    student_info_cache[student_id] = student_info
+    return student_info
+
+#Checking attendance status from cache, not from database to improve efficiency.
+def check_attendance_status(course,student_number):
+    cache_key = f"{course}_{student_number}"
+    if cache_key in attendance_status_cache:
+        return attendance_status_cache[cache_key]
+    status = fsdatabase.attendedStudents(course, student_number)
+    attendance_status_cache[cache_key] = status
+    return status
+
 while True:
     result = fsdatabase.activeClasses('muh-205')
     print(counter)
@@ -60,12 +90,8 @@ while True:
 
         success, img =cap.read()
 
-        #Scaling images due to computation power
-        imgSmall = cv2.resize(img, (0, 0), None, 0.25, 0.25)
-        imgSmall = cv2.cvtColor(imgSmall, cv2.COLOR_BGR2RGB)
-
-        faceCurFrame = face_recognition.face_locations(imgSmall)
-        encodeCurFrame = face_recognition.face_encodings(imgSmall, faceCurFrame)
+        if frame_count % frame_interval == 0:
+            faceCurFrame, encodeCurFrame = process_frame(img)
 
         imgBackground[190:190 + 480, 40:40 + 640] = img
         imgBackground[0:0+720,640:640+640] = imgModeList[modeType]
@@ -101,7 +127,8 @@ while True:
                         modeType = 1
 
             if counter != 0 :
-                if not fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                student_number = str(studentInfo['Student Number'])
+                if not check_attendance_status('blg-403.1', student_number):
                     if not speak_called:
                         speak('You are not enrolled in this course.')
                         speak_called = True
@@ -109,7 +136,7 @@ while True:
                     counter = 0  # Reset counter
                     continue
 
-                #We'll download all the data from realtime database.
+                #Getting data from the cache for system efficiency
                 if counter ==1 :
                     #print(studentInfo)
                     #Check if already marked
@@ -132,7 +159,7 @@ while True:
                             speak("Your attendance is already taken.")
                             speak_called = True
 
-                if fsdatabase.attendedStudents('blg-403.1', str(studentInfo['Student Number'])):
+                if check_attendance_status('blg-403.1',student_number):
                     if modeType !=3:
                         #Marked mode.
                         if 13<counter<=18:
