@@ -144,12 +144,15 @@ while True:
                                                       "%Y-%m-%d %H:%M:%S")
                     secondsElapsed = (datetime.datetime.now()-datetimeobject).total_seconds()
                     #print(secondsElapsed)
-                    if secondsElapsed>3600:
+                    if secondsElapsed>900 and not fsdatabase.isStudentAttended(str(studentInfo['Student Number'])):
                         #Updating data of attendance
                         ref = db.reference(f'Students/{id}')
                         studentInfo['total attendance'] += 1
                         ref.child('total attendance').set(studentInfo['total attendance'])
                         ref.child('last_attendance_time').set(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        fsdatabase.updateStudentAttendance(str(studentInfo['Student Number']))
+
+
                     #If already marked
                     else:
                         modeType = 3

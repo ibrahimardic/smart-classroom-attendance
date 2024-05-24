@@ -37,8 +37,54 @@ def attendedStudents(course_id, student_num):
             return True
     return False
 
-print(attendedStudents('blg-403.1', '180254050'))
-activeClasses('muh-205')
+
+def isStudentAttended( student_num, classroom_id = 'muh-205'):
+    doc_ref = firestoredb.collection('classrooms').document(classroom_id)
+    doc = doc_ref.get()
+    if doc.exists:
+
+        classroom_dict = doc.to_dict()
+        attended_students = classroom_dict.get('attandedStudents', [])
+
+        # Check if the student's attendance is true
+        for student in attended_students:
+            if student.get('number') == student_num:
+                return student.get('isAttanded', False)
+
+    return False
+
+
+def updateStudentAttendance(student_num, classroom_id='muh-205'):
+    db = firestore.client()
+    doc_ref = db.collection('classrooms').document(classroom_id)
+    doc = doc_ref.get()
+
+    if doc.exists:
+        classroom_dict = doc.to_dict()
+        attended_students = classroom_dict.get('attandedStudents', [])
+        student_found = False
+
+        # Check if the student is already in the list
+        for student in attended_students:
+            if student.get('number') == student_num:
+                student['isAttanded'] = True
+                student_found = True
+                break
+
+        # If the student is not found, add them to the list
+        if not student_found:
+            attended_students.append({'number': student_num, 'isAttanded': True})
+
+        # Update the document with the modified attendance list
+        doc_ref.update({'attandedStudents': attended_students})
+        return True
+
+    return False
+
+# updateStudentAttendance('180254050')
+# print(isStudentAttended('180254000'))
+# print(attendedStudents('blg-403.1', '180254050'))
+# activeClasses('muh-205')
 # print(activeClasses('muh-302'))
 # print(activeClasses('muh-205'))
 
