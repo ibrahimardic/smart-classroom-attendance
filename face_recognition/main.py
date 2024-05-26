@@ -14,6 +14,7 @@ import threading
 
 #System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
+courseName = fsdatabase.courseName()
 
 def speak(str1):
     def speak_thread():
@@ -128,7 +129,7 @@ while True:
 
             if counter != 0 :
                 student_number = str(studentInfo['Student Number'])
-                if not check_attendance_status('blg-403.1', student_number):
+                if not check_attendance_status(courseName, student_number):
                     if not speak_called:
                         speak('You are not enrolled in this course.')
                         speak_called = True
@@ -162,7 +163,7 @@ while True:
                             speak("Your attendance is already taken.")
                             speak_called = True
 
-                if check_attendance_status('blg-403.1',student_number):
+                if check_attendance_status(courseName,student_number):
 
                     name = str(studentInfo['name'])
                     short_name = (name[:15] + '.') if len(name) > 15 else name

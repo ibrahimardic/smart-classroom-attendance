@@ -9,9 +9,15 @@ firebase_admin.initialize_app(cred, {
 })
 firestoredb = firestore.client()
 
+
 # Define the query
 courseCode = None
 query = firestoredb.collection('classrooms')
+
+def courseName():
+    courseDict = query.document('muh-205').get().to_dict()
+    courseName = courseDict.get('courseName')
+    return courseName
 
 # classes = query.where('isActive', '==', True).stream()
 

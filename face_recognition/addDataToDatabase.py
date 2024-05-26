@@ -1,5 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, db, firestore
+import datetime
 
 
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -47,15 +48,33 @@ data = {
         }
 }
 
+data2 = {
+    "180254037":
+        {
+            "name": "Ibrahim Ardic",
+            "studentNumber": 180254050,
+            "courses": [{
+                "courseName": "blg-403.1",
+                "record": [{
+                             "date" : datetime.datetime.now(),
+                            "isAttended": False
+                         }]
+
+                         }],
+            #            #["blg-403.1", "blg-402.4", "sec-404.2"],
+            "role": 1
+        }
+}
+
 
 for key,value in data.items():
     ref.child(key).set(value)
 
-for student_id, student_data in data.items():
+for student_id, student_data in data2.items():
     document_ref = database.collection('users').document()
     document_ref.set({
-        'Student Number': student_data['Student Number'],
+        'studentNumber': str(student_data['studentNumber']),
         'name': student_data['name'],
-        'courses': student_data['courses'],
+        'takingCourse': student_data['courses'],
         'role': student_data['role']
     })
