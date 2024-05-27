@@ -39,8 +39,11 @@ def attendedStudents(course_id, student_num):
 
     if course_dict:
         enrolled_students = course_dict.get('enrolledStudents', [])
-        if student_num in [student['number'] for student in enrolled_students]:
-            return True
+#     if student_num in [student['number'] for student in enrolled_students]:
+    #       return True
+        for student in enrolled_students:
+            if student_num == student['number']:
+                return True
     return False
 
 

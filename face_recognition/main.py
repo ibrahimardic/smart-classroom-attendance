@@ -14,7 +14,6 @@ import threading
 
 #System of muh-205.
 result = fsdatabase.activeClasses('muh-205')
-courseName = fsdatabase.courseName()
 
 def speak(str1):
     def speak_thread():
@@ -81,6 +80,7 @@ while True:
     print(counter)
 
     if result:
+        courseName = fsdatabase.courseName()
         if cap == None:
             cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
             cap.set(3, 640)  # Width
@@ -143,9 +143,7 @@ while True:
                     #Check if already marked
                     datetimeobject = datetime.datetime.strptime(studentInfo['last_attendance_time'],
                                                       "%Y-%m-%d %H:%M:%S")
-                    secondsElapsed = (datetime.datetime.now()-datetimeobject).total_seconds()
-                    #print(secondsElapsed)
-                    if secondsElapsed>900 and not fsdatabase.isStudentAttended(str(studentInfo['Student Number'])):
+                    if not fsdatabase.isStudentAttended(str(studentInfo['Student Number'])):
                         #Updating data of attendance
                         ref = db.reference(f'Students/{id}')
                         studentInfo['total attendance'] += 1
